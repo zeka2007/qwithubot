@@ -3,6 +3,8 @@ import time
 import discord
 import youtube_dl
 import os
+if not discord.opus.is_loaded():
+    discord.opus.load_opus('opus')
 #setting
 from discord.ext import commands
 print("all ok")
@@ -143,9 +145,6 @@ async def join(ctx):
 
 @client.command()
 async def play(ctx, url):
-    discord.opus.load_opus()
-    if not discord.opus.is_loaded():
-        raise RunTimeError('Opus failed to load')
     if str(url).find('https://') == -1:
         emb = discord.Embed(
         title = f'{ctx.message.author}, я могу проигрывать аудио только с помощью ссылки на YouTube видео!',
@@ -181,17 +180,11 @@ async def stop(ctx):
     await ctx.voice_client.disconnect()
 @client.command()
 async def pause(ctx):
-    discord.opus.load_opus()
-    if not discord.opus.is_loaded():
-        raise RunTimeError('Opus failed to load')
     ctx.voice_client.pause()
     await ctx.message.add_reaction('✅')
 
 @client.command()
 async def resume(ctx):
-    discord.opus.load_opus()
-    if not discord.opus.is_loaded():
-        raise RunTimeError('Opus failed to load')
     await ctx.message.add_reaction('✅')
     ctx.voice_client.resume()
 #help command
