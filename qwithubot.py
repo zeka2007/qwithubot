@@ -3,20 +3,6 @@ import time
 import discord
 import youtube_dl
 import os
-import ctypes
-import ctypes.util
- 
-print("ctypes - Find opus:")
-a = ctypes.util.find_library('opus')
-print(a)
- 
-print("Discord - Load Opus:")
-b = discord.opus.load_opus(a)
-print(b)
- 
-print("Discord - Is loaded:")
-c = discord.opus.is_loaded()
-print(c)
 #setting
 from discord.ext import commands
 print("all ok")
