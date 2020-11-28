@@ -163,7 +163,7 @@ async def play(ctx, url):
             await voice.move_to(channel)
         else:
             voice = await channel.connect()
-    except Command raised an exception:
+    except CommandRaisedAnException:
         print('[log] Не удалось выполнить. Пропускаю...')
     async with ctx.typing():
         player = await YTDLSource.from_url(url, loop = client.loop)
