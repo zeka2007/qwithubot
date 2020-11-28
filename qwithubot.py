@@ -158,10 +158,13 @@ async def play(ctx, url):
         return
     channel = ctx.message.author.voice.channel
     voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
-    if voice and voice.connected():
-        await voice.move_to(channel)
-    else:
-        voice = await channel.connect()
+    try:
+        if voice and voice.connected():
+            await voice.move_to(channel)
+        else:
+            voice = await channel.connect()
+    except Command raised an exception:
+        print('[log] Не удалось выполнить. Пропускаю...')
     async with ctx.typing():
         player = await YTDLSource.from_url(url, loop = client.loop)
         ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
