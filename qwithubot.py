@@ -195,5 +195,8 @@ async def help(ctx):
     emb.add_field(name = 'Дополнительно', value = 'sourceCode')
     emb.add_field(name = 'Музыка:', value = 'join, play, stop, pause, resume')
     await ctx.send(embed = emb)
+discord.opus.load_opus()
+if not discord.opus.is_loaded():
+    raise RunTimeError('Opus failed to load')
 token = os.environ.get('BOT_TOKEN')
 client.run(token)
