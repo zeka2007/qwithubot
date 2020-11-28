@@ -196,4 +196,3 @@ async def help(ctx):
     emb.add_field(name = 'Музыка:', value = 'join, play, stop, pause, resume')
     await ctx.send(embed = emb)
 token = os.environ.get('BOT_TOKEN')
-# client.run('NzY4MTQ4NjA0MzY3NTM2MTM4.X48QIg.FfL0oSJUx7BV1KUi6FpwFXgyW9E')
