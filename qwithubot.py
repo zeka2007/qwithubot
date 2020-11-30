@@ -249,9 +249,11 @@ async def removeJoinChannel(ctx):
 async def playMusic(ctx, status = None):
     if status == 'on':
         cursor.execute(f"UPDATE server SET musicCommand = {1} WHERE serverID = {ctx.guild.id}")
+        db.commit()
         await ctx.message.add_reaction('✅')
     elif status == 'off':
         cursor.execute(f"UPDATE server SET musicCommand = {0} WHERE serverID = {ctx.guild.id}")
+        db.commit()
         await ctx.message.add_reaction('✅')
     else:
         emb = discord.Embed(title = 'Укажите значение (on/off)', color = discord.Color.red())
