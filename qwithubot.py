@@ -2,12 +2,37 @@
 import time
 import discord
 import youtube_dl
+import sqlite3
 import os
 #setting
 from discord.ext import commands
 print("all ok")
 client = commands.Bot(command_prefix = 'q+', intents = discord.Intents.all())
 client.remove_command("help")
+
+db = sqlite3.connect('bot.db')
+cursor = db.cursor()
+
+cursor.execute("""CREATE TABLE IF NOT EXISTS server (
+    serverID INT,
+    musicCommand INT,
+    linkModer INT,
+    badWordsModer INT,
+    inviteModer INT,
+    memberLevel INT,
+    clearCommand INT,
+    serverCommand INT,
+    memberJoinMessage INT,
+    memberRemoveMessage INT,
+    reactionChannel INT,
+    reaction_in TEXT,
+    ignoreLinkChannel INT,
+    ignoreInviteLinkChannel INT,
+    ignoreBadWordsChannel INT,
+    music_playing TEXT,
+    SPrefix TEXT
+)""")
+db.commit()
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
@@ -61,6 +86,19 @@ async def on_ready():
     await client.change_presence(activity=discord.Game(name='q+help')) #тех. работы〡
     print('Logged on')
 @client.event
+async def on_guild_join(guild):
+    if cursor.execute("SELECT serverID FROM server").fetchone() == guild.id:
+        return
+    cursor.execute("INSERT INTO server VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    (guild.id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '0', 0, 0, 0, '0', '0'))
+    db.commit()
+    print('[LOG] data insert')
+@client.event
+async def on_guild_remove(guild):
+    cursor.execute(f"DELETE FROM server WHERE serverID = {guild.id}")
+    db.commit()
+    print('[LOG] data delete')
+@client.event
 async def on_message(message):
     await client.process_commands(message)
     # if not message.content.find('https://') == -1:
@@ -76,11 +114,13 @@ async def on_message(message):
 #member join
 @client.event
 async def on_member_join(member):
-    if member.guild.id == 775650720761774111:
-        channel = client.get_channel(776861957838995466)
-        emb = discord.Embed(description = f'Привет, {member}! Тебя приветствует сервер {member.guild.name}, а я его бот. Напиши q+help, чтобы узнать больше о моих возможностях!', color = discord.Color.blue())
-        emb.set_thumbnail(url = member.avatar_url)
-        await channel.send(embed = emb)
+    cursor.execute(f"SELECT memberJoinMessage FROM server WHERE serverID = {member.guild.id}")
+    if cursor.fetchone()[0] == 0:
+        return
+    channel = client.get_channel(cursor.execute(f"SELECT memberJoinMessage FROM server WHERE serverID = {member.guild.id}").fetchone()[0])
+    emb = discord.Embed(description = f'Привет, {member}! Тебя приветствует сервер {member.guild.name}, а я его бот. Напиши q+help, чтобы узнать больше о моих возможностях!', color = discord.Color.blue())
+    emb.set_thumbnail(url = member.avatar_url)
+    await channel.send(embed = emb)
 @client.event
 async def on_member_remove(member):
     adm_user = client.get_user(615595496525791295)
@@ -143,6 +183,10 @@ async def join(ctx):
 
 @client.command()
 async def play(ctx, url):
+    if cursor.execute(f"SELECT musicCommand FROM server WHERE serverID = {ctx.guild.id}").fetchone()[0] == 0:
+        emb = discord.Embed(title = 'Администратор сервера отключил эту возможность.', color = discord.Color.red())
+        await ctx.send(embed = emb)
+        return
     if str(url).find('https://') == -1:
         emb = discord.Embed(
         title = f'{ctx.message.author}, я могу проигрывать аудио только с помощью ссылки на YouTube видео!',
@@ -158,13 +202,10 @@ async def play(ctx, url):
         return
     channel = ctx.message.author.voice.channel
     voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
-    try:
-        if voice and voice.connected():
-            await voice.move_to(channel)
-        else:
-            voice = await channel.connect()
-    except NameError:
-        print('[log] Не удалось выполнить. Пропускаю...')
+    if voice and voice.connected():
+        await voice.move_to(channel)
+    else:
+        voice = await channel.connect()
     async with ctx.typing():
         player = await YTDLSource.from_url(url, loop = client.loop)
         ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
@@ -188,6 +229,34 @@ async def pause(ctx):
 async def resume(ctx):
     await ctx.message.add_reaction('✅')
     ctx.voice_client.resume()
+
+
+@client.command()
+@commands.has_permissions(administrator = True)
+async def setJoinChannel(ctx, channel: discord.TextChannel):
+    cursor.execute(f"UPDATE server SET memberJoinMessage = {channel.id} WHERE serverID = {ctx.guild.id}")
+    db.commit()
+    await ctx.send(f'{channel.mention} теперь канал для приветствий!')
+
+@client.command()
+@commands.has_permissions(administrator = True)
+async def removeJoinChannel(ctx):
+    cursor.execute(f"UPDATE server SET memberJoinMessage = {0} WHERE serverID = {ctx.guild.id}")
+    db.commit()
+    await ctx.send('Канал для приветствий был отключён.')
+@client.command()
+@commands.has_permissions(administrator = True)
+async def playMusic(ctx, status = None):
+    if status == 'on':
+        cursor.execute(f"UPDATE server SET musicCommand = {1} WHERE serverID = {ctx.guild.id}")
+        await ctx.message.add_reaction('✅')
+    elif status == 'off':
+        cursor.execute(f"UPDATE server SET musicCommand = {0} WHERE serverID = {ctx.guild.id}")
+        await ctx.message.add_reaction('✅')
+    else:
+        emb = discord.Embed(title = 'Укажите значение (on/off)', color = discord.Color.red())
+        await ctx.send(embed = emb)
+        return
 #help command
 @client.command(pass_context = True)
 async def help(ctx):
@@ -197,6 +266,7 @@ async def help(ctx):
     emb.add_field(name = 'Модерация', value = 'clear, ban, kick')
     emb.add_field(name = 'Дополнительно', value = 'sourceCode')
     emb.add_field(name = 'Музыка:', value = 'join, play, stop, pause, resume')
+    emb.add_field(name = 'Настройка:', value = 'playMusic(on/off), removeJoinChannel, setJoinChannel(канал)')
     await ctx.send(embed = emb)
 token = os.environ.get('BOT_TOKEN')
 client.run(token)
