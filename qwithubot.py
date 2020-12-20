@@ -1,4 +1,5 @@
 #import module
+from PIL import Image, ImageFont, ImageDraw
 import time
 import discord
 import youtube_dl
@@ -147,25 +148,33 @@ async def level(ctx):
     XP = cursor.execute(f"SELECT member_XP FROM members WHERE member_ID = {ctx.author.id}").fetchone()[0]
     LEVEL = cursor.execute(f"SELECT member_level FROM members WHERE member_ID = {ctx.author.id}").fetchone()[0]
 
-    # img = Image.new('RGBA', (300, 100), '#232529')
-    # url = str(ctx.author.avatar_url)[:-10]
-    #
-    # response = requests.get(url, stream = True)
-    # response = Image.open(io.BytesIO(response.content))
-    # response = Image.convert('RGBA')
-    # response = response.resize((80, 80), Image.ANTIALIAS)
-    #
-    # img.paste(response, (10, 10, 100, 100))
-    #
-    # idraw = ImageDraw.Draw(img)
-    # name = ctx.author
-    # headline = ImageFont.truetype('arial.ttf', size = 18)
-    #
-    # idraw.text((100, 10), name, font = headline)
-    #
-    # img.save('card.png')
+    img = Image.new('RGBA', (300, 100), '#232529')
+    url = str(ctx.author.avatar_url)[:-10]
 
-    await ctx.send(f'{ctx.author},твой уровень: {LEVEL - 1}\nтвой опыт: {XP}')
+    response = requests.get(url, stream = True).raw
+    response = Image.open(response)
+    response = response.resize((80, 80))
+
+    img.paste(response, (10, 10))
+
+    idraw = ImageDraw.Draw(img)
+    name = ctx.author.name + "#" + str(ctx.author.discriminator)
+    headline = ImageFont.truetype('impact.ttf', size = 18)
+    xp_text = ImageFont.truetype('arial.ttf', size = 16)
+
+    idraw.text((100, 10), name, font = headline)
+    idraw.text((100, 35), f'опыт: {XP}/{200 * LEVEL}', font = xp_text)
+    idraw.text((100, 60), f'{LEVEL} уровень', font = xp_text)
+    img.save('card.png')
+
+    await ctx.send(file = discord.File('card.png'))
+
+@client.command()
+@commands.has_permissions(administrator = True)
+async def set_level(ctx, level: int, member: discord.Member):
+    cursor.execute(f"UPDATE members SET member_level = {level} WHERE member_ID = {member.id}")
+    db.commit()
+    await ctx.message.add_reaction('✅')
 #member join
 @client.event
 async def on_member_join(member):
@@ -380,7 +389,6 @@ async def playMusic(ctx, status = None):
 #help command
 @client.command(pass_context = True)
 async def help(ctx):
-    #create embed
     emb = discord.Embed(title = "Команды:", color = discord.Color.blue())
     emb.add_field(name = 'Общее', value = 'help, info')
     emb.add_field(name = 'Модерация', value = 'clear, ban, kick')
