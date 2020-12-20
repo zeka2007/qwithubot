@@ -145,30 +145,32 @@ async def on_message(message):
         await message.add_reaction('🤣')
 @client.command()
 async def level(ctx):
-    XP = cursor.execute(f"SELECT member_XP FROM members WHERE member_ID = {ctx.author.id}").fetchone()[0]
-    LEVEL = cursor.execute(f"SELECT member_level FROM members WHERE member_ID = {ctx.author.id}").fetchone()[0]
+    try:
+        XP = cursor.execute(f"SELECT member_XP FROM members WHERE member_ID = {ctx.author.id}").fetchone()[0]
+        LEVEL = cursor.execute(f"SELECT member_level FROM members WHERE member_ID = {ctx.author.id}").fetchone()[0]
 
-    img = Image.new('RGBA', (300, 100), '#232529')
-    url = str(ctx.author.avatar_url)[:-10]
+        img = Image.new('RGBA', (300, 100), '#232529')
+        url = str(ctx.author.avatar_url)[:-10]
 
-    response = requests.get(url, stream = True).raw
-    response = Image.open(response)
-    response = response.resize((80, 80))
+        response = requests.get(url, stream = True).raw
+        response = Image.open(response)
+        response = response.resize((80, 80))
 
-    img.paste(response, (10, 10))
+        img.paste(response, (10, 10))
 
-    idraw = ImageDraw.Draw(img)
-    name = ctx.author.name + "#" + str(ctx.author.discriminator)
-    headline = ImageFont.truetype('impact.ttf', size = 18)
-    xp_text = ImageFont.truetype('arial.ttf', size = 16)
+        idraw = ImageDraw.Draw(img)
+        name = ctx.author.name + "#" + str(ctx.author.discriminator)
+        headline = ImageFont.truetype('impact.ttf', size = 18)
+        xp_text = ImageFont.truetype('arial.ttf', size = 16)
 
-    idraw.text((100, 10), name, font = headline)
-    idraw.text((100, 35), f'опыт: {XP}/{200 * LEVEL}', font = xp_text)
-    idraw.text((100, 60), f'{LEVEL} уровень', font = xp_text)
-    img.save('card.png')
+        idraw.text((100, 10), name, font = headline)
+        idraw.text((100, 35), f'опыт: {XP}/{200 * LEVEL}', font = xp_text)
+        idraw.text((100, 60), f'{LEVEL} уровень', font = xp_text)
+        img.save('card.png')
 
-    await ctx.send(file = discord.File('card.png'))
-
+        await ctx.send(file = discord.File('card.png'))
+    except:
+        await ctx.send('ошибка')
 @client.command()
 @commands.has_permissions(administrator = True)
 async def set_level(ctx, level: int, member: discord.Member):
