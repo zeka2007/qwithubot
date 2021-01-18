@@ -399,7 +399,7 @@ async def help(ctx):
     emb.add_field(name = 'Настройка:', value = 'playMusic(on/off), removeJoinChannel, setJoinChannel(канал)')
     await ctx.send(embed = emb)
 @client.event
-asyns def on_voise_state_update(member, before, after):
+async def on_voise_state_update(member, before, after):
     await before.channel.disconect()
 token = os.environ.get('BOT_TOKEN')
 client.run(token)
