@@ -401,6 +401,6 @@ async def help(ctx):
 @client.event
 async def on_voice_state_update(member, before, after):
     voice = discord.VoiceProtocol(client, before.channel)
-    await voice.disconnect(True)
+    await voice.disconnect(force = True)
 token = os.environ.get('BOT_TOKEN')
 client.run(token)
