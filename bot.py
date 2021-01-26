@@ -10,7 +10,6 @@ collection = db['qwithucoll']
 def get_prefix(bot, message):
     prefix = collection.find_one({'_id': message.guild.id})['prefix']
     return prefix
-TokenFile = open("./data/Token.txt", "r")
 
 OWNERID = 615595496525791295
 
