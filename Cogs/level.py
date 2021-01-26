@@ -41,8 +41,8 @@ class Levels(commands.Cog):
 
         idraw = ImageDraw.Draw(img)
         name = ctx.author.name + "#" + str(ctx.author.discriminator)
-        headline = ImageFont.truetype('impact.ttf', size = 18)
-        xp_text = ImageFont.truetype('arial.ttf', size = 16)
+        headline = ImageFont.truetype('fonts/Impactd Regular.ttf', size = 18)
+        xp_text = ImageFont.truetype('fonts/ArialRegular.ttf', size = 16)
 
         idraw.text((100, 10), name, font = headline)
         idraw.text((100, 35), f'опыт: {XP}/{200 * LEVEL}', font = xp_text)
