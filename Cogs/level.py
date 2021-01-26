@@ -5,7 +5,7 @@ from PIL import Image, ImageFont, ImageDraw
 import requests
 import os
 
-client = pymongo.MongoClient(f"mongodb+srv://qwithu:{os.environ.get('BOT_TOKEN')}@qwithu.ywfyc.mongodb.net/qwithudata?retryWrites=true&w=majority")
+client = pymongo.MongoClient(f"mongodb+srv://qwithu:{os.environ.get('TABLE_PASS')}@qwithu.ywfyc.mongodb.net/qwithudata?retryWrites=true&w=majority")
 db = client['qwithudata']
 collection = db['qwithucoll']
 
