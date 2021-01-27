@@ -1,1 +1,1 @@
-worker: python qwithubot.py
+worker: python bot.py
